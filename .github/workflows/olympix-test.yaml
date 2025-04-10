@@ -1,0 +1,31 @@
+name: Mutation Test Generation Workflow
+on:
+  push
+
+jobs:
+  mutation-test-generation:
+    if: contains(github.event.head_commit.message, 'OPIX-GEN-MUTATION-TESTS')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with: 
+          submodules: recursive
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run forge install 
+        run: |
+          forge install
+
+      - name: Mutation Test Generator
+        uses: olympix/mutation-test-generator@main
+        env:
+          OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
+          OLYMPIX_FAIL_MUTATION_GHA_THRESHOLD: 30
+          OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.sha }}
+        with:
+          args: -p src/ReentrancyAttack.sol
