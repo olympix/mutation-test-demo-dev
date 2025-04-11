@@ -21,7 +21,7 @@ jobs:
         uses: olympix/mutation-test-generator@test/v0.2.0
         env:
           OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
-          OLYMPIX_FAIL_MUTATION_GHA_THRESHOLD: 30
+          OLYMPIX_FAIL_MUTATION_GHA_THRESHOLD: 101
           OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.sha }}
         with:
           args: -w . -p src/ReentrancyAttack.sol
