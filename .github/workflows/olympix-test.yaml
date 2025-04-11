@@ -18,7 +18,7 @@ jobs:
           forge install
 
       - name: Mutation Test Generator
-        uses: olympix/mutation-test-generator@test/v0.2.0
+        uses: olympix/mutation-test-generator@main
         env:
           OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
           OLYMPIX_FAIL_MUTATION_GHA_THRESHOLD: 30
