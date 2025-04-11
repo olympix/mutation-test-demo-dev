@@ -113,4 +113,9 @@ contract SavingsAccountTest is Test {
         savingsAccount.withdraw(50 ether);
         assertEq(savingsAccount.balances(user), 153 ether, "Bonus should not be applied after initial withdrawal");
     }
+
+    function testMe() public {
+        string memory env = vm.envString("TEST_ENV");
+        assertEq(env, "true", "Environment variable TEST_ENV should be 'test'"); 
+    }
 }
