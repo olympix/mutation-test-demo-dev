@@ -24,4 +24,4 @@ jobs:
           OLYMPIX_FAIL_MUTATION_GHA_THRESHOLD: 30
           OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.sha }}
         with:
-          args: -w . -p src/ReentrancyAttack.sol -p src/SavingsAccount.sol
+          args: -w . -env -p src/ReentrancyAttack.sol -p src/SavingsAccount.sol
