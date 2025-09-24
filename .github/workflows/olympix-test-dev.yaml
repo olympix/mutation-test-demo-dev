@@ -30,6 +30,6 @@ jobs:
           OLYMPIX_FAIL_MUTATION_GHA_THRESHOLD: 30
           OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.sha }}
           GITHUB_REPOSITORY_ID: ${{ github.repository_id }}  # Required for GitHub App
-          OPIX_DEBUG: false  # Enable debug logging
+          OPIX_DEBUG: true  # Enable debug logging
         with:
           args: -w . -env -p src/ReentrancyAttack.sol -p src/SavingsAccount.sol
