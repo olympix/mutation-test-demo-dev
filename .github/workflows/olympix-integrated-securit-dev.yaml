@@ -8,7 +8,7 @@ jobs:
       - name: Run Olympix Integrated Security
         uses: olympix/integrated-security@main
         env:
-          OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
+          OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN_DEV }}
           OLYMPIX_API_URL: https://api.olympixscantest.com/api/v1  # DEV API endpoint (full path)
           OLYMPIX_API_WS_URL: wss://api.olympixscantest.com/api/v1/client-ide-ws  # DEV WebSocket endpoint
       - name: Upload result to GitHub Code Scanning
