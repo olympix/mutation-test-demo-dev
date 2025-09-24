@@ -1,4 +1,4 @@
-name: Integrated Security Workflow
+name: Integrated Security Workflow (DEV)
 on: push
 jobs:
   security:

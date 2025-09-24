@@ -32,4 +32,4 @@ jobs:
           GITHUB_REPOSITORY_ID: ${{ github.repository_id }}  # Required for GitHub App
           OPIX_DEBUG: true  # Enable debug logging
         with:
-          args: -w . -env -p src/ReentrancyAttack.sol -p src/SavingsAccount.sol
+          args: -w . -p src/ReentrancyAttack.sol -p src/SavingsAccount.sol
