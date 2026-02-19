@@ -21,6 +21,8 @@ jobs:
         uses: olympix/mutation-test-generator@main
         env:
           OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
+          OLYMPIX_API_URL: https://api.olympixscan.com/api/v1
+          OLYMPIX_API_WS_URL: wss://api.olympixscan.com/api/v1/client-ide-ws
           OLYMPIX_FAIL_MUTATION_GHA_THRESHOLD: 30
           OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.sha }}
         with:
