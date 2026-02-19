@@ -25,5 +25,6 @@ jobs:
           OLYMPIX_API_WS_URL: wss://api.olympixdevsectools.com/api/v1/client-ide-ws
           OLYMPIX_FAIL_MUTATION_GHA_THRESHOLD: 30
           OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY_ID: ${{ github.repository_id }}
         with:
           args: -w . -env -p src/ReentrancyAttack.sol -p src/SavingsAccount.sol
