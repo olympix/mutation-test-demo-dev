@@ -1,13 +1,9 @@
-name: Mutation Test Generation Workflow (DEV)
+name: Mutation Test Generation Workflow
 on:
-  push:
-    branches:
-      - dev
-      - feature/*
-  workflow_dispatch:  # Allow manual trigger
-
+  push
+  
 jobs:
-  mutation-test-generation-dev:
+  mutation-test-generation:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -21,15 +17,14 @@ jobs:
         run: |
           forge install
 
-      - name: Mutation Test Generator (DEV Environment)
+      - name: Mutation Test Generator
         uses: olympix/mutation-test-generator@main
         env:
           OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
-          OLYMPIX_API_URL: https://api.olympixscantest.com/api/v1  # DEV API endpoint (full path)
-          OLYMPIX_API_WS_URL: wss://api.olympixscantest.com/api/v1/client-ide-ws  # DEV WebSocket endpoint
+          OLYMPIX_API_URL: ${{ vars.OLYMPIX_API_URL }}
+          OLYMPIX_API_WS_URL: ${{ vars.OLYMPIX_API_WS_URL }}
           OLYMPIX_FAIL_MUTATION_GHA_THRESHOLD: 30
           OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.sha }}
-          GITHUB_REPOSITORY_ID: ${{ github.repository_id }}  # Required for GitHub App
-          OPIX_DEBUG: true  # Enable debug logging
+          GITHUB_REPOSITORY_ID: ${{ github.repository_id }}
         with:
           args: -w . -env -p src/ReentrancyAttack.sol -p src/SavingsAccount.sol
