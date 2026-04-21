@@ -1,32 +1,51 @@
-name: BugPocer dev Security Analysis Workflow
-on:
-  pull_request:
-   types: [opened, synchronize]
-jobs:
-  bugpocer-analysis:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-
-      - name: Run forge install
-        run: |
-          forge install
-
-      - name: BugPocer Security Analysis
-        uses: olympix/bugpocer-action@dev
-        env:
-          OLYMPIX_API_URL: "https://api.olympixscantest.com/api/v1"
-          OLYMPIX_API_WS_URL: "wss://api.olympixscantest.com/api/v1/client-ide-ws"
-          OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
-          OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.sha }}
-          OLYMPIX_GITHUB_PR_MODE: "true"
-          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
-          GITHUB_REPOSITORY_ID: ${{ github.repository_id }}
-        
-        with:
-          args: -w . -ca
+  name: BugPocer Security Analysis                                                                                 
+  on:                                                    
+    pull_request:
+      types: [opened, synchronize]
+    issue_comment:                                                                                                 
+      types: [created]
+                                                                                                                   
+  jobs:                                                  
+    bugpocer-analysis:
+      # Skip issue comments on non-PR issues
+      if: github.event_name == 'pull_request' || github.event.issue.pull_request != null                           
+      runs-on: ubuntu-latest
+      steps:                                                                                                       
+        - uses: actions/checkout@v3                      
+          with:                                                                                                    
+            submodules: recursive                        
+            # For issue_comment events we need the PR head, not the default branch
+            ref: ${{ github.event.pull_request.head.sha || format('refs/pull/{0}/head', github.event.issue.number) 
+  }}                                                                                                               
+                                                                                                                   
+        - name: Install Foundry                                                                                    
+          uses: foundry-rs/foundry-toolchain@v1          
+                                                                                                                   
+        - name: Run forge install
+          run: forge install                                                                                       
+                                                         
+        - name: Capture HEAD commit message (for in-commit /olympix triggers)                                      
+          id: commit-msg
+          if: github.event_name == 'pull_request'                                                                  
+          shell: bash                                    
+          run: |
+            {
+              echo 'message<<OLYMPIX_EOF'                                                                          
+              git log -1 --pretty=%B
+              echo 'OLYMPIX_EOF'                                                                                   
+            } >> "$GITHUB_OUTPUT"                                                                                  
+   
+        - name: BugPocer Security Analysis                                                                         
+          uses: olympix/bugpocer-action@v1                                                                         
+          env:
+            OLYMPIX_API_URL: "https://api.olympixscantest.com/api/v1"                                              
+            OLYMPIX_API_WS_URL: "wss://api.olympixscantest.com/api/v1/client-ide-ws"                               
+            OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
+            OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}                
+            OLYMPIX_GITHUB_PR_MODE: "true"                                                                         
+            OLYMPIX_GITHUB_TRIGGER_MODE: "manual"                                                                  
+            OLYMPIX_TRIGGER_COMMIT_MESSAGE: ${{ steps.commit-msg.outputs.message }}                                
+            GITHUB_PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}                 
+            GITHUB_REPOSITORY_ID: ${{ github.repository_id }}                                                      
+          with:                                                                                                    
+            args: -w . -ca
