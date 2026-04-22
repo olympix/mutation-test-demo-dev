@@ -1,13 +1,46 @@
-name: BugPocer dev Security Analysis Workflow
+name: BugPocer dev Security Analysis Workflow (manual)
+
 on:
+  # Reviewer posts /bugpocer scan|cancel|help on a PR
+  issue_comment:
+    types: [created]
+  # Auto-trigger when commit message contains /bugpocer scan
   pull_request:
-   types: [opened, synchronize]
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
 jobs:
   bugpocer-analysis:
+    # Skip non-PR issue comments and comments that don't even start with /bugpocer
+    # so we don't burn Action minutes on unrelated chatter.
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event.issue.pull_request != null &&
+       startsWith(github.event.comment.body, '/bugpocer'))
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Resolve PR head SHA and number
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "sha=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          else
+            PR_NUMBER=${{ github.event.issue.number }}
+            SHA=$(gh api repos/${{ github.repository }}/pulls/$PR_NUMBER --jq .head.sha)
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+            echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
         with:
+          ref: ${{ steps.pr.outputs.sha }}
           submodules: recursive
 
       - name: Install Foundry
@@ -17,16 +50,26 @@ jobs:
         run: |
           forge install
 
+      - name: Capture commit message (pull_request only)
+        if: github.event_name == 'pull_request'
+        run: |
+          MSG=$(git log -1 --pretty=%B "${{ steps.pr.outputs.sha }}")
+          {
+            echo "OLYMPIX_TRIGGER_COMMIT_MESSAGE<<EOF"
+            echo "$MSG"
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
       - name: BugPocer Security Analysis
         uses: olympix/bugpocer-action@dev
         env:
           OLYMPIX_API_URL: "https://api.olympixscantest.com/api/v1"
           OLYMPIX_API_WS_URL: "wss://api.olympixscantest.com/api/v1/client-ide-ws"
           OLYMPIX_API_TOKEN: ${{ secrets.OLYMPIX_API_TOKEN }}
-          OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ github.sha }}
+          OLYMPIX_GITHUB_COMMIT_HEAD_SHA: ${{ steps.pr.outputs.sha }}
           OLYMPIX_GITHUB_PR_MODE: "true"
-          GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
+          OLYMPIX_GITHUB_TRIGGER_MODE: "manual"
+          GITHUB_PR_NUMBER: ${{ steps.pr.outputs.number }}
           GITHUB_REPOSITORY_ID: ${{ github.repository_id }}
-        
         with:
           args: -w . -ca
